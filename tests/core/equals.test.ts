@@ -24,6 +24,20 @@ describe('equals', () => {
     expect(isNegZero(-0)).toBe(true);
     expect(isNegZero(0)).toBe(false);
   });
+
+  it('matches non-primitive values by reference identity, not structure', () => {
+    const target = { id: 1 };
+    const isTarget = equals(target);
+
+    expect(isTarget(target)).toBe(true);
+    expect(isTarget({ id: 1 })).toBe(false);
+
+    const arrayTarget = [1, 2];
+    const isArrayTarget = equals(arrayTarget);
+
+    expect(isArrayTarget(arrayTarget)).toBe(true);
+    expect(isArrayTarget([1, 2])).toBe(false);
+  });
 });
 
 describe('equalsBy', () => {
