@@ -35,6 +35,8 @@ pnpm build
 
 ## Workflow
 
+Before starting work, please comment on the issue to let us know you'd like to work on it, and wait for a maintainer to assign it to you. This helps avoid duplicate work. If there isn't an issue yet, please open one first.
+
 1. Fork this repository
 2. Clone your forked repository
 
