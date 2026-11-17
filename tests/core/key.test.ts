@@ -123,6 +123,43 @@ describe('key: hasKey', () => {
     expect(hasSelectedKind({ kind: 'user' })).toBe(true);
     expect(hasSelectedKind({ id: 1 })).toBe(false);
   });
+
+  it('accepts an own accessor property without invoking its getter', () => {
+    const readKind = jest.fn(() => 'user');
+    const value = {
+      get kind() {
+        return readKind();
+      }
+    };
+
+    expect(hasKind(value)).toBe(true);
+    expect(readKind).not.toHaveBeenCalled();
+  });
+
+  it('rejects a missing key without invoking other getters', () => {
+    const readId = jest.fn(() => 1);
+    const value = {
+      get id() {
+        return readId();
+      }
+    };
+
+    expect(hasKind(value)).toBe(false);
+    expect(readId).not.toHaveBeenCalled();
+  });
+
+  it('rejects an inherited accessor property without invoking its getter', () => {
+    const readKind = jest.fn(() => 'user');
+    const proto = {
+      get kind() {
+        return readKind();
+      }
+    };
+    const value = Object.create(proto) as unknown;
+
+    expect(hasKind(value)).toBe(false);
+    expect(readKind).not.toHaveBeenCalled();
+  });
 });
 
 describe('key: hasKeys', () => {
@@ -170,6 +207,53 @@ describe('key: hasKeys', () => {
 
     expect(hasKindAndName({ kind: 'user', name: 'Ada' })).toBe(true);
     expect(hasKindAndName({ id: 1, role: 'admin' })).toBe(false);
+  });
+
+  it('accepts own accessor properties without invoking their getters', () => {
+    const readKind = jest.fn(() => 'user');
+    const readId = jest.fn(() => 1);
+    const value = {
+      get kind() {
+        return readKind();
+      },
+      get id() {
+        return readId();
+      }
+    };
+
+    expect(hasKindAndId(value)).toBe(true);
+    expect(readKind).not.toHaveBeenCalled();
+    expect(readId).not.toHaveBeenCalled();
+  });
+
+  it('rejects when a key is missing without invoking present getters', () => {
+    const readKind = jest.fn(() => 'user');
+    const value = {
+      get kind() {
+        return readKind();
+      }
+    };
+
+    expect(hasKindAndId(value)).toBe(false);
+    expect(readKind).not.toHaveBeenCalled();
+  });
+
+  it('rejects inherited accessor properties without invoking their getters', () => {
+    const readKind = jest.fn(() => 'user');
+    const readId = jest.fn(() => 1);
+    const proto = {
+      get kind() {
+        return readKind();
+      },
+      get id() {
+        return readId();
+      }
+    };
+    const value = Object.create(proto) as unknown;
+
+    expect(hasKindAndId(value)).toBe(false);
+    expect(readKind).not.toHaveBeenCalled();
+    expect(readId).not.toHaveBeenCalled();
   });
 });
 
