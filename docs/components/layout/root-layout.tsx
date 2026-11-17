@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Source_Sans_3 } from 'next/font/google';
-import './globals.css';
+import '@/app/globals.css';
+import type { Locale } from '@/constants/i18n';
 import { SiteHeader } from '@/components/navigation/site-header';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
 import { apiSections } from '@/constants/api-catalog';
@@ -28,9 +29,7 @@ export const metadata: Metadata = {
     follow: true
   },
   icons: {
-    icon: '/iskit_favicon.png',
-    shortcut: '/iskit_favicon.png',
-    apple: '/iskit_favicon.png'
+    icon: { url: '/iskit_favicon.png', type: 'image/png', sizes: '192x192' }
   },
   openGraph: {
     ...SITE_OPEN_GRAPH,
@@ -50,13 +49,15 @@ export const viewport: Viewport = {
   initialScale: 1
 };
 
-export default function RootLayout({
-  children
+export function RootLayout({
+  children,
+  lang
 }: {
   children: React.ReactNode;
+  lang: Locale;
 }) {
   return (
-    <html lang='en' suppressHydrationWarning className={sourceSans3.variable}>
+    <html lang={lang} suppressHydrationWarning className={sourceSans3.variable}>
       <body className='antialiased'>
         <SiteHeader />
         <SidebarLayout sections={[...apiSections, ...guideSections]}>

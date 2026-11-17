@@ -6,54 +6,52 @@ import { InstallSection } from '@/components/landing-page/install-section';
 import { UsageSection } from '@/components/landing-page/usage-section';
 import { Heading } from '@/components/ui/heading';
 import { getDictionary } from '@/lib/dictionaries';
-import {
-  SUPPORTED_LOCALES,
-  DEFAULT_LOCALE,
-  LOCALE_PATHS,
-  resolveLocale
-} from '@/constants/i18n';
-import { SITE_OPEN_GRAPH, SITE_TITLE } from '@/constants/site';
+import { DEFAULT_LOCALE, LOCALE_PATHS, type Locale } from '@/constants/i18n';
+import { SITE_OPEN_GRAPH, SITE_TITLE, SITE_URL } from '@/constants/site';
 
-type DocsPageProps = {
-  params: Promise<{ lang: string }>;
-};
-
-export async function generateStaticParams() {
-  return SUPPORTED_LOCALES.map((lang) => ({ lang }));
-}
-
-export async function generateMetadata({
-  params
-}: DocsPageProps): Promise<Metadata> {
-  const { lang } = await params;
-  const locale = resolveLocale(lang);
+export async function homeMetadata(locale: Locale): Promise<Metadata> {
   const dict = await getDictionary(locale);
 
   return {
     title: SITE_TITLE,
     description: dict.top.description,
-    alternates: {
-      canonical: LOCALE_PATHS[locale],
-      languages: {
-        ...LOCALE_PATHS,
-        'x-default': LOCALE_PATHS[DEFAULT_LOCALE]
-      }
-    },
     openGraph: {
       ...SITE_OPEN_GRAPH,
       title: SITE_TITLE,
-      description: dict.top.description,
-      url: LOCALE_PATHS[locale]
+      description: dict.top.description
     }
   };
 }
 
-export default async function DocsPage({ params }: DocsPageProps) {
-  const { lang } = await params;
-  const dict = await getDictionary(resolveLocale(lang));
+export async function HomePage({ locale }: { locale: Locale }) {
+  const dict = await getDictionary(locale);
 
   return (
     <div className='container mx-auto px-4 py-12'>
+      {/* Next's metadata resolver removes the slash from the origin URL. */}
+      <link
+        rel='canonical'
+        href={new URL(LOCALE_PATHS[locale], SITE_URL).href}
+      />
+      <link
+        rel='alternate'
+        hrefLang='en'
+        href={new URL(LOCALE_PATHS.en, SITE_URL).href}
+      />
+      <link
+        rel='alternate'
+        hrefLang='nl'
+        href={new URL(LOCALE_PATHS.nl, SITE_URL).href}
+      />
+      <link
+        rel='alternate'
+        hrefLang='x-default'
+        href={new URL(LOCALE_PATHS[DEFAULT_LOCALE], SITE_URL).href}
+      />
+      <meta
+        property='og:url'
+        content={new URL(LOCALE_PATHS[locale], SITE_URL).href}
+      />
       <HeroSection
         primary={dict.top.hero.primary}
         secondary={dict.top.hero.secondary}
