@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 import { cn } from '@/lib/utils';
 
@@ -10,6 +11,23 @@ type SiteNavProps = {
   /** Layout direction for the nav links. Defaults to `horizontal`. */
   orientation?: 'horizontal' | 'vertical';
 };
+
+function LanguageLinks({ showSeparator }: { showSeparator: boolean }) {
+  const pathname = usePathname();
+  if (pathname !== '/' && pathname !== '/nl') return null;
+
+  return (
+    <>
+      {showSeparator ? <span className='mx-2 text-primary'>|</span> : null}
+      <Link href='/' className='group'>
+        <span className='link-underline'>EN</span>
+      </Link>
+      <Link href='/nl' className='group'>
+        <span className='link-underline'>NL</span>
+      </Link>
+    </>
+  );
+}
 
 export function SiteNav({
   className,
@@ -39,15 +57,9 @@ export function SiteNav({
       >
         <span className='link-underline'>GitHub</span>
       </a>
-      {showSeparators && orientation === 'horizontal' ? (
-        <span className='mx-2 text-primary'>|</span>
-      ) : null}
-      <Link href='/en' className='group'>
-        <span className='link-underline'>EN</span>
-      </Link>
-      <Link href='/nl' className='group'>
-        <span className='link-underline'>NL</span>
-      </Link>
+      <LanguageLinks
+        showSeparator={showSeparators && orientation === 'horizontal'}
+      />
     </nav>
   );
 }

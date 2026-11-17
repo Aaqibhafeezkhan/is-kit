@@ -1,5 +1,4 @@
 import type { Locale } from '@/constants/i18n';
-import { resolveLocale } from '@/constants/i18n';
 
 /**
  * Bundle of locale-specific copy consumed by the docs landing page sections.
@@ -131,11 +130,10 @@ export const DICTIONARIES: Record<Locale, Dict> = {
 };
 
 /**
- * Resolve the dictionary for a given locale, falling back to the default when
- * an unsupported locale is requested.
+ * Resolve the dictionary for a supported locale.
  * @param locale Locale identifier taken from the URL.
  * @returns Translated content used to render the docs homepage.
  */
-export async function getDictionary(locale: string): Promise<Dict> {
-  return DICTIONARIES[resolveLocale(locale)];
+export async function getDictionary(locale: Locale): Promise<Dict> {
+  return DICTIONARIES[locale];
 }
