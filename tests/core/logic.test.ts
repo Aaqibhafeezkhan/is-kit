@@ -245,6 +245,76 @@ describe('guardIn', () => {
     expect(inUnion('x')).toBe(true);
     expect(inUnion(1 as string | number)).toBe(false);
   });
+
+  it('forwards the exact original object reference to the wrapped guard', () => {
+    type Input = { role: 'admin'; id: number } | { role: 'guest'; id: number };
+    type Admin = Extract<Input, { role: 'admin' }>;
+
+    const input: Input = { role: 'admin', id: 1 };
+    const guard = jest.fn((value: unknown): value is Admin => value === input);
+    const inInput = guardIn<Input>()(guard);
+
+    expect(inInput(input)).toBe(true);
+    expect(guard).toHaveBeenCalledTimes(1);
+    expect(guard.mock.calls[0][0]).toBe(input);
+  });
+
+  it('invokes the wrapped guard once per evaluation, not at construction', () => {
+    type Input = { id: number };
+
+    const guard = jest.fn((_value: unknown): _value is Input => true);
+    const inInput = guardIn<Input>()(guard);
+
+    expect(guard).not.toHaveBeenCalled();
+
+    const first = { id: 1 };
+    const second = { id: 2 };
+
+    expect(inInput(first)).toBe(true);
+    expect(guard).toHaveBeenCalledTimes(1);
+    expect(guard.mock.calls[0][0]).toBe(first);
+
+    expect(inInput(second)).toBe(true);
+    expect(guard).toHaveBeenCalledTimes(2);
+    expect(guard.mock.calls[1][0]).toBe(second);
+  });
+
+  it('forwards boolean results without inverting them', () => {
+    type Input = { enabled: boolean };
+
+    const pass = { enabled: true };
+    const fail = { enabled: false };
+    const guard = jest.fn((value: unknown): value is Input => value === pass);
+    const inInput = guardIn<Input>()(guard);
+
+    expect(inInput(pass)).toBe(true);
+    expect(inInput(fail)).toBe(false);
+    expect(guard).toHaveBeenNthCalledWith(1, pass);
+    expect(guard).toHaveBeenNthCalledWith(2, fail);
+  });
+
+  it('propagates thrown values unchanged', () => {
+    type Input = { id: number };
+
+    const failure = new Error('guard failed');
+    const guard = jest.fn((_value: unknown): _value is Input => {
+      throw failure;
+    });
+    const inInput = guardIn<Input>()(guard);
+    const input = { id: 1 };
+
+    let thrown: unknown;
+
+    try {
+      inInput(input);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBe(failure);
+    expect(guard).toHaveBeenCalledTimes(1);
+    expect(guard.mock.calls[0][0]).toBe(input);
+  });
 });
 
 describe('not', () => {
