@@ -330,4 +330,46 @@ describe('not', () => {
     expect(isNonZero(0)).toBe(false);
     expect(isNonZero(4)).toBe(true);
   });
+
+  it('forwards the exact original input and invokes the wrapped predicate exactly once', () => {
+    const input = { id: 1 };
+    const guard = jest.fn((_value: unknown): _value is { id: number } => true);
+    const isNotInput = not(guard);
+
+    expect(isNotInput(input)).toBe(false);
+    expect(guard).toHaveBeenCalledTimes(1);
+    expect(guard.mock.calls[0][0]).toBe(input);
+  });
+
+  it('invokes the wrapped predicate exactly once per call', () => {
+    const guard = jest.fn((_value: unknown): _value is string => false);
+    const isNotString = not(guard);
+
+    expect(isNotString('a')).toBe(true);
+    expect(isNotString('b')).toBe(true);
+    expect(guard).toHaveBeenCalledTimes(2);
+    expect(guard).toHaveBeenNthCalledWith(1, 'a');
+    expect(guard).toHaveBeenNthCalledWith(2, 'b');
+  });
+
+  it('propagates thrown values unchanged', () => {
+    const failure = new Error('predicate failed');
+    const guard = jest.fn((_value: unknown): _value is string => {
+      throw failure;
+    });
+    const isNotString = not(guard);
+    const input = 'value';
+
+    let thrown: unknown;
+
+    try {
+      isNotString(input);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBe(failure);
+    expect(guard).toHaveBeenCalledTimes(1);
+    expect(guard.mock.calls[0][0]).toBe(input);
+  });
 });
