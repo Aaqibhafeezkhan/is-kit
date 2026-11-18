@@ -94,7 +94,7 @@ const isTree: Predicate<Tree> = lazy(() =>
 
 ## Documentation
 
-- [Documentation](https://is-kit.dev/en)
+- [Documentation](https://is-kit.dev/)
 - [Practical guides](https://is-kit.dev/guides)
 - [Filter null and undefined from arrays in TypeScript](https://is-kit.dev/guides/filter-null-and-undefined)
 - [Keep hand-written type guards in sync with TypeScript types](https://is-kit.dev/guides/keep-type-guards-in-sync)

@@ -2,11 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['is-kit'],
+  skipTrailingSlashRedirect: true,
   async redirects() {
     return [
       {
-        source: '/',
-        destination: '/en',
+        source: '/en/:path*',
+        destination: '/:path*',
         permanent: true
       }
     ];
