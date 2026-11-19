@@ -396,7 +396,37 @@ const isConfig = struct({
 });
 ```
 
-`optionalKey(guard)` means the property may be missing.
+`optional(guard)` and `optionalKey(guard)` answer different questions.
+`optional` is about the value: the key must be there, but it may hold
+`undefined`. `optionalKey` is about the key: it may be missing, but when it is
+there the value must pass the guard. Here is how each one treats `tag` in
+`struct({ id: isNumber, tag: ... })`:
+
+| Field schema                           | `{ id: 1, tag: 'hello' }` | `{ id: 1, tag: undefined }` | `{ id: 1 }` | Inferred `tag`              |
+| -------------------------------------- | ------------------------- | --------------------------- | ----------- | --------------------------- |
+| `tag: optional(isString)`              | ✅                        | ✅                          | ❌          | `tag: string \| undefined`  |
+| `tag: optionalKey(isString)`           | ✅                        | ❌                          | ✅          | `tag?: string`              |
+| `tag: optionalKey(optional(isString))` | ✅                        | ✅                          | ✅          | `tag?: string \| undefined` |
+
+If you come from a schema library where `.optional()` accepts both a missing
+key and `undefined`, the match is `optionalKey(optional(guard))`.
+
+The difference shows up with API and JSON payloads. Building an object from a
+maybe-undefined variable keeps the key, and `JSON.stringify` drops it:
+
+```ts
+const tag: string | undefined = undefined;
+const payload = { id: 1, tag }; // { id: 1, tag: undefined }, the key is present
+
+struct({ id: isNumber, tag: optionalKey(isString) })(payload); // false
+
+const received = JSON.parse(JSON.stringify(payload)); // { id: 1 }, the key is gone
+struct({ id: isNumber, tag: optional(isString) })(received); // false
+```
+
+So a guard that checks objects you build in code and the same objects after a
+JSON round trip needs `optionalKey(optional(guard))` for fields that may be
+`undefined`.
 
 Use `struct(schema, { exact: true })` when extra own enumerable string keys
 should be rejected. Exact mode follows `Object.keys(...)` semantics, so symbol
@@ -405,8 +435,6 @@ keys and non-enumerable properties are outside its key matching.
 Schemas themselves must use own enumerable string keys. `struct` rejects
 symbol-keyed, non-enumerable, and inherited schema fields so its runtime checks
 match the inferred type.
-
-If the property must exist but the value may be `undefined`, use `optional(guard)` instead.
 
 ### 5. Validate arrays, tuples, maps, sets, and records
 
